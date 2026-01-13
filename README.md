@@ -1,1 +1,1 @@
-# automatic-blog-front
+# meerkat-log
