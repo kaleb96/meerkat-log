@@ -1,0 +1,40 @@
+/* src/app/globals.css */
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --foreground-rgb: 15, 23, 42;
+  --background-rgb: 255, 255, 255;
+}
+
+@layer base {
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-rgb));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* @apply 대신 표준 CSS 변수나 Tailwind v4 유틸리티를 사용합니다. */
+@layer components {
+  .prose {
+    max-width: none;
+    line-height: 1.625;
+    color: #1e293b; /* text-slate-800 대신 직접 컬러나 유틸리티 사용 */
+  }
+
+  .prose h2,
+  .prose h3 {
+    letter-spacing: -0.025em;
+    font-weight: 900;
+    color: #0f172a; /* text-slate-900 */
+  }
+
+  .prose p {
+    margin-bottom: 1.5rem;
+  }
+}
