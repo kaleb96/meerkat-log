@@ -1,9 +1,9 @@
-import { supabase } from '@/lib/supabase';
-import { getDictionary, Locale } from '@/lib/dictionary';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { Calendar, ChevronLeft, ExternalLink, Clock } from 'lucide-react';
-import Link from 'next/link';
+import { supabase } from "@/lib/supabase";
+import { getDictionary, Locale } from "@/lib/dictionary";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Calendar, ChevronLeft, ExternalLink, Clock } from "lucide-react";
+import Link from "next/link";
 
 // 1. 다국어 SEO 메타데이터 (구글 검색 엔진용)
 export async function generateMetadata({
@@ -12,15 +12,22 @@ export async function generateMetadata({
   params: Promise<{ lang: string; id: string }>;
 }) {
   const { lang, id } = await params;
-  const { data: post } = await supabase.from('news').select('*').eq('id', id).single();
+  const { data: post } = await supabase
+    .from("news")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  if (!post) return { title: 'Post Not Found' };
+  if (!post) return { title: "Post Not Found" };
 
-  const title = lang === 'ko' ? post.title : post.title_en || post.title;
+  const title = lang === "ko" ? post.title : post.title_en || post.title;
 
   return {
     title: `${title} | MEERKAT.LOG`,
-    description: (lang === 'ko' ? post.content : post.content_en).substring(0, 150),
+    description: (lang === "ko" ? post.content : post.content_en).substring(
+      0,
+      150
+    ),
     alternates: {
       canonical: `/${lang}/post/${id}`,
       languages: { ko: `/ko/post/${id}`, en: `/en/post/${id}` },
@@ -35,12 +42,20 @@ export default async function PostDetailPage({
 }) {
   const { lang, id } = await params;
   const dict = getDictionary(lang as Locale);
-  const isKo = lang === 'ko';
+  const isKo = lang === "ko";
 
-  const { data: post } = await supabase.from('news').select('*').eq('id', id).single();
+  const { data: post } = await supabase
+    .from("news")
+    .select("*")
+    .eq("id", id)
+    .single();
 
   if (!post)
-    return <div className="py-20 text-center text-slate-500 font-bold">Post not found.</div>;
+    return (
+      <div className="py-20 text-center text-slate-500 font-bold">
+        Post not found.
+      </div>
+    );
 
   return (
     <article className="max-w-3xl mx-auto">
@@ -49,7 +64,10 @@ export default async function PostDetailPage({
         href={`/${lang}`}
         className="inline-flex items-center gap-1 text-slate-400 hover:text-blue-600 mb-10 transition-colors text-sm font-bold group"
       >
-        <ChevronLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+        <ChevronLeft
+          size={16}
+          className="transition-transform group-hover:-translate-x-1"
+        />
         {dict.nav.back}
       </Link>
 
@@ -83,7 +101,7 @@ export default async function PostDetailPage({
         prose-headings:text-slate-900 prose-headings:font-black 
         prose-p:text-slate-600 prose-p:leading-relaxed
         prose-strong:text-slate-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-        prose-img:rounded-3xl prose-img:shadow-2xl"
+        prose-img:rounded-3xl prose-img:shadow-2xl break-keep"
       >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {isKo ? post.content : post.content_en || post.content}
@@ -106,9 +124,9 @@ export default async function PostDetailPage({
             href={post.original_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+            className="inline-flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-sm break-keep"
           >
-            {isKo ? '원문 읽기' : 'Original Article'} <ExternalLink size={14} />
+            {isKo ? "원문 읽기" : "Original Article"} <ExternalLink size={14} />
           </a>
         </div>
       </footer>

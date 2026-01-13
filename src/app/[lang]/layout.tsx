@@ -1,7 +1,7 @@
-import { getDictionary, Locale } from '@/lib/dictionary';
-import { Globe, Menu, Search, Share2 } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
+import { getDictionary, Locale } from "@/lib/dictionary";
+import { Globe, Menu, Search, Share2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default async function LangLayout({
   children,
@@ -21,11 +21,12 @@ export default async function LangLayout({
           <Link href={`/${lang}`} className="flex items-center gap-3 group">
             <div className="h-10 w-10 overflow-hidden rounded-xl border border-slate-200 shadow-sm transition-transform group-hover:scale-105">
               <Image
-                src="/meerkat-profile.png"
+                src="/images/meerkat.png"
                 alt="Meerkat Log"
-                width="40"
-                height="40"
-                className="h-full w-full object-cover"
+                width="50" // 따옴표 없이 숫자로 넣어보세요
+                height="50"
+                priority // 추가: 로딩 우선순위 높임
+                className="object-cover"
               />
             </div>
             <span className="text-xl font-black tracking-tighter text-slate-900 uppercase">
@@ -35,7 +36,10 @@ export default async function LangLayout({
 
           {/* 데스크탑 네비게이션 */}
           <nav className="hidden items-center gap-8 md:flex text-sm font-bold text-slate-500">
-            <Link href={`/${lang}`} className="hover:text-blue-600 transition-colors">
+            <Link
+              href={`/${lang}`}
+              className="hover:text-blue-600 transition-colors"
+            >
               {dict.nav.home}
             </Link>
             <Link href="#" className="hover:text-blue-600 transition-colors">
@@ -45,11 +49,17 @@ export default async function LangLayout({
             {/* 언어 스위처 (캡슐 디자인) */}
             <div className="flex items-center gap-3 ml-4 bg-slate-100 px-3 py-1.5 rounded-full text-[11px] tracking-widest font-black">
               <Globe size={14} className="text-slate-400" />
-              <Link href="/ko" className={lang === 'ko' ? 'text-blue-600' : 'text-slate-400'}>
+              <Link
+                href="/ko"
+                className={lang === "ko" ? "text-blue-600" : "text-slate-400"}
+              >
                 KO
               </Link>
               <span className="text-slate-200">|</span>
-              <Link href="/en" className={lang === 'en' ? 'text-blue-600' : 'text-slate-400'}>
+              <Link
+                href="/en"
+                className={lang === "en" ? "text-blue-600" : "text-slate-400"}
+              >
                 EN
               </Link>
             </div>
