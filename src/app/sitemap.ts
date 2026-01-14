@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabase';
 
 const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
-  const baseUrl = 'https://meerkat-log.com';
+  const baseUrl = 'https://meerkat-log.vercel.app';
 
   // 1. DB에서 모든 포스트의 ID와 최종 수정일을 가져옵니다.
   const { data: posts } = await supabase
