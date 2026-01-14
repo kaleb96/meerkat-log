@@ -1,9 +1,9 @@
-import { supabase } from "@/lib/supabase";
-import { getDictionary, Locale } from "@/lib/dictionary";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Calendar, ChevronLeft, ExternalLink, Clock } from "lucide-react";
-import Link from "next/link";
+import { supabase } from '@/lib/supabase';
+import { getDictionary, Locale } from '@/lib/dictionary';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Calendar, ChevronLeft, ExternalLink, Clock } from 'lucide-react';
+import Link from 'next/link';
 
 // 1. 다국어 SEO 메타데이터 (구글 검색 엔진용)
 export async function generateMetadata({
@@ -12,25 +12,40 @@ export async function generateMetadata({
   params: Promise<{ lang: string; id: string }>;
 }) {
   const { lang, id } = await params;
+
+  // 1. 필요한 컬럼만 가져오기 (성능 최적화)
   const { data: post } = await supabase
-    .from("news")
-    .select("*")
-    .eq("id", id)
+    .from('news')
+    .select('title, title_en, content, content_en')
+    .eq('id', id)
     .single();
 
-  if (!post) return { title: "Post Not Found" };
+  if (!post) return { title: 'Post Not Found | MEERKAT.LOG' };
 
-  const title = lang === "ko" ? post.title : post.title_en || post.title;
+  // 2. 언어별 데이터 할당 (간결한 로직)
+  const isKo = lang === 'ko';
+  const title = isKo ? post.title : post.title_en || post.title;
+  const description = (isKo ? post.content : post.content_en || post.content)
+    .substring(0, 150)
+    .replace(/[#*]/g, '') // 마크다운 기호 제거하여 순수 텍스트만 추출
+    .trim();
 
   return {
     title: `${title} | MEERKAT.LOG`,
-    description: (lang === "ko" ? post.content : post.content_en).substring(
-      0,
-      150
-    ),
+    description,
+    openGraph: {
+      title: `${title} | MEERKAT.LOG`,
+      description,
+      type: 'article',
+      images: [{ url: '/images/meerkat.png' }], // 공유 시 뜰 이미지 강제 지정
+    },
     alternates: {
+      // 3. 절대 경로 권장 (배포될 실제 도메인이 확정되면 앞에 붙여주는 게 좋습니다)
       canonical: `/${lang}/post/${id}`,
-      languages: { ko: `/ko/post/${id}`, en: `/en/post/${id}` },
+      languages: {
+        'ko-KR': `/ko/post/${id}`,
+        'en-US': `/en/post/${id}`,
+      },
     },
   };
 }
@@ -42,20 +57,12 @@ export default async function PostDetailPage({
 }) {
   const { lang, id } = await params;
   const dict = getDictionary(lang as Locale);
-  const isKo = lang === "ko";
+  const isKo = lang === 'ko';
 
-  const { data: post } = await supabase
-    .from("news")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: post } = await supabase.from('news').select('*').eq('id', id).single();
 
   if (!post)
-    return (
-      <div className="py-20 text-center text-slate-500 font-bold">
-        Post not found.
-      </div>
-    );
+    return <div className="py-20 text-center text-slate-500 font-bold">Post not found.</div>;
 
   return (
     <article className="max-w-3xl mx-auto">
@@ -64,10 +71,7 @@ export default async function PostDetailPage({
         href={`/${lang}`}
         className="inline-flex items-center gap-1 text-slate-400 hover:text-blue-600 mb-10 transition-colors text-sm font-bold group"
       >
-        <ChevronLeft
-          size={16}
-          className="transition-transform group-hover:-translate-x-1"
-        />
+        <ChevronLeft size={16} className="transition-transform group-hover:-translate-x-1" />
         {dict.nav.back}
       </Link>
 
@@ -115,9 +119,6 @@ export default async function PostDetailPage({
       <footer className="mt-20 pt-10 border-t border-slate-100">
         <div className="bg-slate-50 rounded-3xl p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-100">
           <div>
-            <h4 className="text-sm font-black text-slate-900 mb-1 uppercase tracking-tighter">
-              Source Analysis
-            </h4>
             <p className="text-sm text-slate-500 font-medium">{dict.source}</p>
           </div>
           <a
@@ -126,7 +127,7 @@ export default async function PostDetailPage({
             rel="noreferrer"
             className="inline-flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-sm break-keep"
           >
-            {isKo ? "원문 읽기" : "Original Article"} <ExternalLink size={14} />
+            {isKo ? '원문 읽기' : 'Original Article'} <ExternalLink size={14} />
           </a>
         </div>
       </footer>
