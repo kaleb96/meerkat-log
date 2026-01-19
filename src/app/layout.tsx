@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -23,20 +24,10 @@ export const metadata: Metadata = {
   },
 };
 
-// params를 받아올 수 있도록 타입을 수정합니다.
-export default async function RootLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: Promise<{ lang: string }>;
-}) {
-  // 현재 접속한 경로의 언어(lang)를 가져옵니다.
-  const { lang } = await params;
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // 중요: lang="en" 대신 동적으로 lang={lang}을 설정합니다.
-    <html lang={lang || 'ko'}>
+    // 최상위에서는 기본 언어를 설정하거나, lang 속성을 비워두어도 하위 layout에서 덮어씁니다.
+    <html lang="ko">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
     </html>
   );
