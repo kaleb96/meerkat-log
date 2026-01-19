@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 const robots = (): MetadataRoute.Robots => {
-  const baseUrl = 'https://meerkat-log.com';
+  const baseUrl = 'https://meerkat-log.vercel.app';
 
   return {
     rules: {

@@ -12,20 +12,20 @@ export async function generateMetadata({
   params: Promise<{ lang: string; id: string }>;
 }) {
   const { lang, id } = await params;
+  const isKo = lang === 'ko';
 
   // 1. 필요한 컬럼만 가져오기 (성능 최적화)
   const { data: post } = await supabase
-    .from('news')
-    .select('title, title_en, content, content_en')
-    .eq('id', id)
+    .from('news_dev')
+    .select('title_ko, title_en, content_ko, content_en')
+    .eq('id', parseInt(id))
     .single();
-
   if (!post) return { title: 'Post Not Found | MEERKAT.LOG' };
-
   // 2. 언어별 데이터 할당 (간결한 로직)
-  const isKo = lang === 'ko';
-  const title = isKo ? post.title : post.title_en || post.title;
-  const description = (isKo ? post.content : post.content_en || post.content)
+  // const title = isKo ? post.title : post.title_en || post.title;
+  const title = isKo ? post.title_ko : post.title_en;
+  // const description = (isKo ? post.content : post.content_en || post.content)
+  const description = (isKo ? post.content_ko : post.content_en)
     .substring(0, 150)
     .replace(/[#*]/g, '') // 마크다운 기호 제거하여 순수 텍스트만 추출
     .trim();
@@ -59,10 +59,14 @@ export default async function PostDetailPage({
   const dict = getDictionary(lang as Locale);
   const isKo = lang === 'ko';
 
-  const { data: post } = await supabase.from('news').select('*').eq('id', id).single();
+  // const { data: post } = await supabase.from('news').select('*').eq('id', id).single();
+  const { data: post } = await supabase.from('news_dev').select('*').eq('id', id).single();
 
   if (!post)
     return <div className="py-20 text-center text-slate-500 font-bold">Post not found.</div>;
+
+  const displayTitle = isKo ? post.title_ko : post.title_en;
+  const displayContent = isKo ? post.content_ko : post.content_en;
 
   return (
     <article className="max-w-3xl mx-auto">
@@ -86,13 +90,14 @@ export default async function PostDetailPage({
               <Calendar size={12} />
               {new Date(post.created_at).toLocaleDateString()}
             </span>
+            {/* 3. 조회수 표시 추가 (미리 구현) */}
             <span className="flex items-center gap-1">
-              <Clock size={12} /> 3 min read
+              <Clock size={12} /> {post.views} views
             </span>
           </div>
         </div>
         <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-[1.15] tracking-tight">
-          {isKo ? post.title : post.title_en || post.title}
+          {displayTitle}
         </h1>
       </header>
 
@@ -107,9 +112,7 @@ export default async function PostDetailPage({
         prose-strong:text-slate-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
         prose-img:rounded-3xl prose-img:shadow-2xl break-keep"
       >
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {isKo ? post.content : post.content_en || post.content}
-        </ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
       </div>
 
       {/* [AD SLOT 2] 본문 하단 광고 */}
