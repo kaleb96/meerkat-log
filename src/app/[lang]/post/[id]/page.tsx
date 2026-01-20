@@ -1,11 +1,12 @@
+// src/app/[lang]/post/[id]/page.tsx
 import { supabase } from '@/lib/supabase';
 import { getDictionary, Locale } from '@/lib/dictionary';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Calendar, ChevronLeft, ExternalLink, Clock } from 'lucide-react';
 import Link from 'next/link';
+import PostInteraction from '@/components/PostIntercation';
 
-// 1. 다국어 SEO 메타데이터 (구글 검색 엔진용)
 export async function generateMetadata({
   params,
 }: {
@@ -14,20 +15,18 @@ export async function generateMetadata({
   const { lang, id } = await params;
   const isKo = lang === 'ko';
 
-  // 1. 필요한 컬럼만 가져오기 (성능 최적화)
   const { data: post } = await supabase
     .from('news_dev')
     .select('title_ko, title_en, content_ko, content_en')
     .eq('id', parseInt(id))
     .single();
+
   if (!post) return { title: 'Post Not Found | MEERKAT.LOG' };
-  // 2. 언어별 데이터 할당 (간결한 로직)
-  // const title = isKo ? post.title : post.title_en || post.title;
+
   const title = isKo ? post.title_ko : post.title_en;
-  // const description = (isKo ? post.content : post.content_en || post.content)
   const description = (isKo ? post.content_ko : post.content_en)
     .substring(0, 150)
-    .replace(/[#*]/g, '') // 마크다운 기호 제거하여 순수 텍스트만 추출
+    .replace(/[#*]/g, '')
     .trim();
 
   return {
@@ -37,10 +36,9 @@ export async function generateMetadata({
       title: `${title} | MEERKAT.LOG`,
       description,
       type: 'article',
-      images: [{ url: '/images/meerkat.png' }], // 공유 시 뜰 이미지 강제 지정
+      images: [{ url: '/images/meerkat.png' }],
     },
     alternates: {
-      // 3. 절대 경로 권장 (배포될 실제 도메인이 확정되면 앞에 붙여주는 게 좋습니다)
       canonical: `/${lang}/post/${id}`,
       languages: {
         'ko-KR': `/ko/post/${id}`,
@@ -59,7 +57,7 @@ export default async function PostDetailPage({
   const dict = getDictionary(lang as Locale);
   const isKo = lang === 'ko';
 
-  // const { data: post } = await supabase.from('news').select('*').eq('id', id).single();
+  // 데이터 가져오기 (likes와 views 포함)
   const { data: post } = await supabase.from('news_dev').select('*').eq('id', id).single();
 
   if (!post)
@@ -70,7 +68,7 @@ export default async function PostDetailPage({
 
   return (
     <article className="max-w-3xl mx-auto">
-      {/* 상단 네비게이션 */}
+      {/* SECTION: 네비게이션 */}
       <Link
         href={`/${lang}`}
         className="inline-flex items-center gap-1 text-slate-400 hover:text-blue-600 mb-10 transition-colors text-sm font-bold group"
@@ -79,7 +77,7 @@ export default async function PostDetailPage({
         {dict.nav.back}
       </Link>
 
-      {/* 헤더 섹션 */}
+      {/* SECTION: 헤더 */}
       <header className="mb-12">
         <div className="flex items-center gap-4 mb-6">
           <span className="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-sm uppercase tracking-tighter">
@@ -90,9 +88,8 @@ export default async function PostDetailPage({
               <Calendar size={12} />
               {new Date(post.created_at).toLocaleDateString()}
             </span>
-            {/* 3. 조회수 표시 추가 (미리 구현) */}
             <span className="flex items-center gap-1">
-              <Clock size={12} /> {post.views} views
+              <Clock size={12} /> {post.views?.toLocaleString() || 0} views
             </span>
           </div>
         </div>
@@ -101,10 +98,7 @@ export default async function PostDetailPage({
         </h1>
       </header>
 
-      {/* [AD SLOT 1] 본문 시작 전 광고 */}
-      {/* <div className="w-full h-24 bg-slate-50 border border-dashed border-slate-200 mb-12 flex items-center justify-center text-[10px] font-black text-slate-300 tracking-widest">AD SENSE - TOP</div> */}
-
-      {/* 마크다운 본문 (Tailwind v4 유틸리티 및 Typography 조합) */}
+      {/* SECTION: 마크다운 본문 */}
       <div
         className="prose prose-slate prose-lg max-w-none 
         prose-headings:text-slate-900 prose-headings:font-black 
@@ -115,10 +109,10 @@ export default async function PostDetailPage({
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
       </div>
 
-      {/* [AD SLOT 2] 본문 하단 광고 */}
-      {/* <div className="w-full h-64 bg-slate-50 border border-dashed border-slate-200 mt-20 flex items-center justify-center text-[10px] font-black text-slate-300 tracking-widest">AD SENSE - BOTTOM</div> */}
+      {/* NOTE: 상호작용 섹션 조회수 중복방지 및 좋아요 */}
+      <PostInteraction id={id} initialLikes={post.likes || 0} />
 
-      {/* 출처 섹션 */}
+      {/* SECTION: 출처 */}
       <footer className="mt-20 pt-10 border-t border-slate-100">
         <div className="bg-slate-50 rounded-3xl p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-100">
           <div>
