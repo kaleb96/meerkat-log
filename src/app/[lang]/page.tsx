@@ -41,7 +41,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
           return (
             <article key={post.id} className="group">
-              <Link href={`/${lang}/post/${post.id}`}>
+              <Link href={`/${lang}/post/${post.slug}`}>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-sm uppercase tracking-tighter">

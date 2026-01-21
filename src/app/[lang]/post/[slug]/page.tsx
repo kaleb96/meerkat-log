@@ -1,4 +1,3 @@
-// src/app/[lang]/post/[id]/page.tsx
 import { supabase } from '@/lib/supabase';
 import { getDictionary, Locale } from '@/lib/dictionary';
 import ReactMarkdown from 'react-markdown';
@@ -7,27 +6,31 @@ import { Calendar, ChevronLeft, ExternalLink, Clock } from 'lucide-react';
 import Link from 'next/link';
 import PostInteraction from '@/components/PostIntercation';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ lang: string; id: string }>;
-}) {
-  const { lang, id } = await params;
+interface Props {
+  params: Promise<{ lang: string; slug: string }>;
+}
+
+// 1. 동적 메타데이터: SEO 최적화 (id -> slug)
+export async function generateMetadata({ params }: Props) {
+  const { lang, slug } = await params;
   const isKo = lang === 'ko';
 
   const { data: post } = await supabase
     .from('news_dev')
-    .select('title_ko, title_en, content_ko, content_en')
-    .eq('id', parseInt(id))
+    .select('title_ko, title_en, content_ko, content_en, created_at')
+    .eq('slug', slug)
     .single();
 
   if (!post) return { title: 'Post Not Found | MEERKAT.LOG' };
 
   const title = isKo ? post.title_ko : post.title_en;
+  // 설명문에서 마크다운 제거 및 요약
   const description = (isKo ? post.content_ko : post.content_en)
-    .substring(0, 150)
-    .replace(/[#*]/g, '')
+    .replace(/[#*`]/g, '')
+    .substring(0, 160)
     .trim();
+
+  const baseUrl = 'https://meerkat-log.vercel.app';
 
   return {
     title: `${title} | MEERKAT.LOG`,
@@ -36,29 +39,27 @@ export async function generateMetadata({
       title: `${title} | MEERKAT.LOG`,
       description,
       type: 'article',
+      publishedTime: post.created_at,
       images: [{ url: '/images/meerkat.png' }],
+      url: `${baseUrl}/${lang}/post/${slug}`,
     },
     alternates: {
-      canonical: `/${lang}/post/${id}`,
+      canonical: `${baseUrl}/${lang}/post/${slug}`,
       languages: {
-        'ko-KR': `/ko/post/${id}`,
-        'en-US': `/en/post/${id}`,
+        'ko-KR': `${baseUrl}/ko/post/${slug}`,
+        'en-US': `${baseUrl}/en/post/${slug}`,
       },
     },
   };
 }
 
-export default async function PostDetailPage({
-  params,
-}: {
-  params: Promise<{ lang: string; id: string }>;
-}) {
-  const { lang, id } = await params;
+export default async function PostDetailPage({ params }: Props) {
+  const { lang, slug } = await params;
   const dict = getDictionary(lang as Locale);
   const isKo = lang === 'ko';
 
-  // 데이터 가져오기 (likes와 views 포함)
-  const { data: post } = await supabase.from('news_dev').select('*').eq('id', id).single();
+  // 2. 데이터 가져오기 (slug 기반 조회)
+  const { data: post } = await supabase.from('news_dev').select('*').eq('slug', slug).single();
 
   if (!post)
     return <div className="py-20 text-center text-slate-500 font-bold">Post not found.</div>;
@@ -66,8 +67,25 @@ export default async function PostDetailPage({
   const displayTitle = isKo ? post.title_ko : post.title_en;
   const displayContent = isKo ? post.content_ko : post.content_en;
 
+  // 3. 구조화 데이터 (JSON-LD) 추가: 구글 검색 노출용
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: displayTitle,
+    datePublished: post.created_at,
+    author: { '@type': 'Person', name: 'Meerkat' },
+    articleSection: post.category,
+    inLanguage: lang,
+  };
+
   return (
     <article className="max-w-3xl mx-auto">
+      {/* 검색엔진용 JSON-LD 삽입 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* SECTION: 네비게이션 */}
       <Link
         href={`/${lang}`}
@@ -109,8 +127,8 @@ export default async function PostDetailPage({
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
       </div>
 
-      {/* NOTE: 상호작용 섹션 조회수 중복방지 및 좋아요 */}
-      <PostInteraction id={id} initialLikes={post.likes || 0} />
+      {/* 4. 상호작용 섹션: post.id를 내부적으로 사용 (조회수/좋아요 로직용) */}
+      <PostInteraction id={post.id.toString()} initialLikes={post.likes || 0} />
 
       {/* SECTION: 출처 */}
       <footer className="mt-20 pt-10 border-t border-slate-100">
