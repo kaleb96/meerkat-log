@@ -3,6 +3,15 @@
 
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* 미어캣 테마 색상 정의 (v4 방식) */
+  --color-meerkat-amber: #d97706;
+  --color-meerkat-earth: #3d332d;
+  --color-meerkat-clay: #4f463f;
+  --color-meerkat-shadow: #635a52;
+  --color-meerkat-sand: #a39485;
+  --color-meerkat-savanna: #fcfbf9;
+  --color-meerkat-bone: #faf7f2;
+  --color-meerkat-border: #e9e2d8;
 }
 
 :root {

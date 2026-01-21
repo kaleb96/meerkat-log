@@ -5,6 +5,8 @@ import remarkGfm from 'remark-gfm';
 import { Calendar, ChevronLeft, ExternalLink, Clock } from 'lucide-react';
 import Link from 'next/link';
 import PostInteraction from '@/components/PostIntercation';
+import Image from 'next/image';
+// import { ReadingProgressBar } from '@/components/ReadingProgressBar'
 
 interface Props {
   params: Promise<{ lang: string; slug: string }>;
@@ -58,91 +60,91 @@ export default async function PostDetailPage({ params }: Props) {
   const dict = getDictionary(lang as Locale);
   const isKo = lang === 'ko';
 
-  // 2. 데이터 가져오기 (slug 기반 조회)
   const { data: post } = await supabase.from('news_dev').select('*').eq('slug', slug).single();
 
   if (!post)
-    return <div className="py-20 text-center text-slate-500 font-bold">Post not found.</div>;
+    return <div className="py-20 text-center text-meerkat-sand font-bold">Post not found.</div>;
 
   const displayTitle = isKo ? post.title_ko : post.title_en;
   const displayContent = isKo ? post.content_ko : post.content_en;
 
-  // 3. 구조화 데이터 (JSON-LD) 추가: 구글 검색 노출용
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: displayTitle,
-    datePublished: post.created_at,
-    author: { '@type': 'Person', name: 'Meerkat' },
-    articleSection: post.category,
-    inLanguage: lang,
-  };
-
   return (
-    <article className="max-w-3xl mx-auto">
-      {/* 검색엔진용 JSON-LD 삽입 */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
+    <article className="max-w-3xl mx-auto pb-32">
       {/* SECTION: 네비게이션 */}
       <Link
         href={`/${lang}`}
-        className="inline-flex items-center gap-1 text-slate-400 hover:text-blue-600 mb-10 transition-colors text-sm font-bold group"
+        className="inline-flex items-center gap-1 text-meerkat-sand hover:text-meerkat-amber mb-12 transition-colors text-sm font-bold group"
       >
         <ChevronLeft size={16} className="transition-transform group-hover:-translate-x-1" />
         {dict.nav.back}
       </Link>
 
       {/* SECTION: 헤더 */}
-      <header className="mb-12">
-        <div className="flex items-center gap-4 mb-6">
-          <span className="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-sm uppercase tracking-tighter">
+      <header className="mb-16">
+        <div className="flex items-center gap-4 mb-8">
+          <span className="bg-meerkat-amber text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.15em] shadow-sm">
             {post.category}
           </span>
-          <div className="flex items-center text-slate-400 text-xs font-bold gap-3">
-            <span className="flex items-center gap-1">
-              <Calendar size={12} />
+          <div className="flex items-center text-meerkat-sand text-xs font-bold gap-4 uppercase tracking-widest">
+            <span className="flex items-center gap-1.5">
+              <Calendar size={13} />
               {new Date(post.created_at).toLocaleDateString()}
             </span>
-            <span className="flex items-center gap-1">
-              <Clock size={12} /> {post.views?.toLocaleString() || 0} views
+            <span className="flex items-center gap-1.5">
+              <Clock size={13} />
+              {post.views || 0} views
             </span>
           </div>
         </div>
-        <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-[1.15] tracking-tight">
+        <h1 className="text-4xl md:text-6xl font-[1000] text-meerkat-earth leading-[1.1] tracking-tighter break-keep">
           {displayTitle}
         </h1>
       </header>
 
-      {/* SECTION: 마크다운 본문 */}
+      {/* SECTION: 마크다운 본문 (색상 고도화) */}
       <div
         className="prose prose-slate prose-lg max-w-none 
-        prose-headings:text-slate-900 prose-headings:font-black 
-        prose-p:text-slate-600 prose-p:leading-relaxed
-        prose-strong:text-slate-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-        prose-img:rounded-3xl prose-img:shadow-2xl break-keep"
+        prose-headings:text-meerkat-earth prose-headings:font-black 
+        prose-p:text-meerkat-clay prose-p:leading-[1.85]
+        prose-strong:text-meerkat-amber 
+        prose-blockquote:border-meerkat-amber prose-blockquote:bg-meerkat-bone prose-blockquote:rounded-r-2xl prose-blockquote:text-meerkat-shadow
+        prose-img:rounded-[2.5rem] prose-img:shadow-2xl break-keep"
       >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
       </div>
 
-      {/* 4. 상호작용 섹션: post.id를 내부적으로 사용 (조회수/좋아요 로직용) */}
       <PostInteraction id={post.id.toString()} initialLikes={post.likes || 0} />
 
-      {/* SECTION: 출처 */}
-      <footer className="mt-20 pt-10 border-t border-slate-100">
-        <div className="bg-slate-50 rounded-3xl p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-100">
-          <div>
-            <p className="text-sm text-slate-500 font-medium">{dict.source}</p>
+      {/* SECTION: Meerkat Insight Footer */}
+      <footer className="mt-24">
+        <div className="bg-meerkat-bone rounded-[3rem] p-10 md:p-14 border border-meerkat-border flex flex-col md:flex-row items-center justify-between gap-10">
+          <div className="flex items-center gap-6 text-left w-full">
+            <div className="w-16 h-16 bg-meerkat-earth rounded-3xl flex items-center justify-center text-3xl shadow-lg shrink-0">
+              <Image
+                alt="Meerkat-insight"
+                src="/images/meerkat-insight.png"
+                width={40}
+                height={40}
+                priority
+                className="object-cover"
+              />
+            </div>
+            <div>
+              <p className="text-meerkat-earth font-[900] text-xl mb-1 italic">Meerkat Insights</p>
+              <p className="text-meerkat-shadow text-sm leading-relaxed font-medium">
+                {isKo
+                  ? '거친 야생과 같은 정보의 세계에서 미어캣은 오직 진실만을 감시합니다.'
+                  : 'In a world of wild information, Meerkat monitors only the truth.'}
+              </p>
+            </div>
           </div>
           <a
             href={post.original_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-sm break-keep"
+            className="w-full md:w-auto text-center bg-meerkat-amber text-white px-8 py-4 rounded-2xl font-black hover:bg-meerkat-earth transition-all shadow-xl shadow-meerkat-amber/20 break-keep"
           >
-            {isKo ? '원문 읽기' : 'Original Article'} <ExternalLink size={14} />
+            {isKo ? '오리지널 리포트' : 'Original Report'}
           </a>
         </div>
       </footer>
