@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/images/meerkat.png',
   },
+  verification: {
+    google: 'NDjDFkk9Xhag9p8BaViOLZoB8dtDAU4CxVV0rcnI5dw',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
